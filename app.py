@@ -11,9 +11,22 @@ def obtener_datos_dni():
         return jsonify({"detail": "El DNI debe tener 8 dígitos"}), 400
 
     try:
+        # Agregar encabezados para la solicitud
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1'
+        }
+
         # Obtención de cookies y del token
         s = requests.Session()
-        res1 = s.get("https://eldni.com/pe/buscar-por-dni")
+        res1 = s.get("https://eldni.com/pe/buscar-por-dni", headers=headers)
         if res1.status_code != 200:
             raise Exception(f"Error al obtener cookies: {res1.status_code}")
         
@@ -25,6 +38,7 @@ def obtener_datos_dni():
 
         # Envío de información
         res2 = s.post("https://eldni.com/pe/buscar-datos-por-dni", 
+                      headers=headers,
                       files={
                           '_token': (None, token),
                           'dni': (None, dni)
