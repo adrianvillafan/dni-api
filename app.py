@@ -32,23 +32,26 @@ def obtener_datos_dni():
         if len(datos) < 5:
             raise Exception("No se encontraron suficientes datos en el resultado de búsqueda")
 
-        bs_nombre = BeautifulSoup(str(datos[2]), 'html.parser')
-        p_nombre = bs_nombre.find('p')
-        nombre = ''.join(p_nombre.find_all(string=True, recursive=False)).strip()
+        try:
+            bs_nombre = BeautifulSoup(str(datos[2]), 'html.parser')
+            p_nombre = bs_nombre.find('p')
+            nombre = ''.join(p_nombre.find_all(string=True, recursive=False)).strip()
 
-        bs_paterno = BeautifulSoup(str(datos[3]), 'html.parser')
-        p_paterno = bs_paterno.find('p')
-        paterno = ''.join(p_paterno.find_all(string=True, recursive=False)).strip()
+            bs_paterno = BeautifulSoup(str(datos[3]), 'html.parser')
+            p_paterno = bs_paterno.find('p')
+            paterno = ''.join(p_paterno.find_all(string=True, recursive=False)).strip()
 
-        bs_materno = BeautifulSoup(str(datos[4]), 'html.parser')
-        p_materno = bs_materno.find('p')
-        materno = ''.join(p_materno.find_all(string=True, recursive=False)).strip()
+            bs_materno = BeautifulSoup(str(datos[4]), 'html.parser')
+            p_materno = bs_materno.find('p')
+            materno = ''.join(p_materno.find_all(string=True, recursive=False)).strip()
 
-        return jsonify({
-            "nombres": nombre,
-            "apellido_paterno": paterno,
-            "apellido_materno": materno
-        })
+            return jsonify({
+                "nombres": nombre,
+                "apellido_paterno": paterno,
+                "apellido_materno": materno
+            })
+        except Exception as e:
+            raise Exception(f"Error procesando los datos: {str(e)}")
     except Exception as e:
         return jsonify({"detail": f"Error al obtener los datos: {str(e)}"}), 500
 
