@@ -45,18 +45,21 @@ def obtener_datos_dni():
             raise Exception("No se encontró el token en el HTML")
 
         # Envío de información
-        headers['Content-Type'] = 'multipart/form-data; boundary=----WebKitFormBoundarybDEpouvEPBTsaBvw'
         cookies = res1.cookies.get_dict()
-        
-        payload = {
-            '_token': token,
-            'dni': dni
-        }
-        
+        headers['Content-Type'] = 'multipart/form-data; boundary=----WebKitFormBoundarytOxzhOqnJeRsSzqf'
+
+        data = (
+            "------WebKitFormBoundarytOxzhOqnJeRsSzqf\r\n"
+            f"Content-Disposition: form-data; name=\"_token\"\r\n\r\n{token}\r\n"
+            "------WebKitFormBoundarytOxzhOqnJeRsSzqf\r\n"
+            f"Content-Disposition: form-data; name=\"dni\"\r\n\r\n{dni}\r\n"
+            "------WebKitFormBoundarytOxzhOqnJeRsSzqf--\r\n"
+        )
+
         res2 = s.post("https://eldni.com/pe/buscar-datos-por-dni", 
                       headers=headers,
                       cookies=cookies,
-                      data=payload)
+                      data=data)
         if res2.status_code != 200:
             raise Exception(f"Error al enviar datos: {res2.status_code}")
 
