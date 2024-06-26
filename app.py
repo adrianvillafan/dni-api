@@ -24,6 +24,11 @@ def obtener_datos_dni():
 
         # Obtención de variables
         soup = BeautifulSoup(res2.text, 'html.parser')
+
+        # Depuración: imprimir el HTML completo recibido
+        html_content = soup.prettify()
+        print(html_content)
+
         div = soup.find('div', {'id': 'resultado_busqueda'})
         if not div:
             raise Exception("No se encontró el div de resultado de búsqueda")
@@ -46,9 +51,9 @@ def obtener_datos_dni():
             materno = ''.join(p_materno.find_all(string=True, recursive=False)).strip()
 
             return jsonify({
-                "nombres": nombre,
-                "apellido_paterno": paterno,
-                "apellido_materno": materno
+                "nombres": nombre.strip(),
+                "apellido_paterno": paterno.strip(),
+                "apellido_materno": materno.strip()
             })
         except Exception as e:
             raise Exception(f"Error procesando los datos: {str(e)}")
