@@ -1,44 +1,47 @@
-from fastapi import FastAPI, HTTPException
-import requests as r
+from flask import Flask, request, jsonify
+import requests
 from bs4 import BeautifulSoup
 
-app = FastAPI()
+app = Flask(__name__)
 
-@app.get("/obtener_datos_dni/")
-def obtener_datos_dni(dni: str):
-    if len(dni) != 8 or not dni.isdigit():
-        raise HTTPException(status_code=400, detail="El DNI debe tener 8 dígitos")
-
-    # Obtención de cookies
-    s = r.Session()
-    res1 = s.get("https://dni-peru.com/buscar-dni-nombres-apellidos/")
-
-    # Envío de información
-    res2 = s.post("https://dni-peru.com/buscar-dni-nombres-apellidos/", data={'dni4': dni, 'buscar_dni': ''})
-
-    # Obtención de variables
-    soup = BeautifulSoup(res2.text, 'html.parser')
-    div = soup.find('div', {'id': 'resultado_busqueda'})
-    datos = div.find_all('p', recursive=True)
+@app.route("/obtener_datos_dni/", methods=["GET"])
+def obtener_datos_dni():
+    dni = request.args.get('dni')
+    if not dni or len(dni) != 8 or not dni.isdigit():
+        return jsonify({"detail": "El DNI debe tener 8 dígitos"}), 400
 
     try:
+        # Obtención de cookies
+        s = requests.Session()
+        s.get("https://dni-peru.com/buscar-dni-nombres-apellidos/")
+
+        # Envío de información
+        res2 = s.post("https://dni-peru.com/buscar-dni-nombres-apellidos/", data={'dni4': dni, 'buscar_dni': ''})
+
+        # Obtención de variables
+        soup = BeautifulSoup(res2.text, 'html.parser')
+        div = soup.find('div', {'id': 'resultado_busqueda'})
+        datos = div.find_all('p', recursive=True)
+
         bs_nombre = BeautifulSoup(str(datos[2]), 'html.parser')
         p_nombre = bs_nombre.find('p')
-        nombre = ''.join(p_nombre.find_all(string=True, recursive=False))
+        nombre = ''.join(p_nombre.find_all(string=True, recursive=False)).strip()
 
         bs_paterno = BeautifulSoup(str(datos[3]), 'html.parser')
         p_paterno = bs_paterno.find('p')
-        paterno = ''.join(p_paterno.find_all(string=True, recursive=False))
+        paterno = ''.join(p_paterno.find_all(string=True, recursive=False)).strip()
 
         bs_materno = BeautifulSoup(str(datos[4]), 'html.parser')
         p_materno = bs_materno.find('p')
-        materno = ''.join(p_materno.find_all(string=True, recursive=False))
+        materno = ''.join(p_materno.find_all(string=True, recursive=False)).strip()
 
-        return {
-            "nombres": nombre.strip(),
-            "apellido_paterno": paterno.strip(),
-            "apellido_materno": materno.strip()
-        }
-    except:
-        raise HTTPException(status_code=500, detail="Error al obtener los datos")
+        return jsonify({
+            "nombres": nombre,
+            "apellido_paterno": paterno,
+            "apellido_materno": materno
+        })
+    except Exception as e:
+        return jsonify({"detail": "Error al obtener los datos"}), 500
 
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
