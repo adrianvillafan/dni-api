@@ -13,15 +13,24 @@ def obtener_datos_dni():
     try:
         # Obtención de cookies
         s = requests.Session()
-        s.get("https://dni-peru.com/buscar-dni-nombres-apellidos/")
-
+        res1 = s.get("https://dni-peru.com/buscar-dni-nombres-apellidos/")
+        if res1.status_code != 200:
+            raise Exception(f"Error al obtener cookies: {res1.status_code}")
+        
         # Envío de información
         res2 = s.post("https://dni-peru.com/buscar-dni-nombres-apellidos/", data={'dni4': dni, 'buscar_dni': ''})
+        if res2.status_code != 200:
+            raise Exception(f"Error al enviar datos: {res2.status_code}")
 
         # Obtención de variables
         soup = BeautifulSoup(res2.text, 'html.parser')
         div = soup.find('div', {'id': 'resultado_busqueda'})
+        if not div:
+            raise Exception("No se encontró el div de resultado de búsqueda")
+        
         datos = div.find_all('p', recursive=True)
+        if len(datos) < 5:
+            raise Exception("No se encontraron suficientes datos en el resultado de búsqueda")
 
         bs_nombre = BeautifulSoup(str(datos[2]), 'html.parser')
         p_nombre = bs_nombre.find('p')
@@ -41,7 +50,7 @@ def obtener_datos_dni():
             "apellido_materno": materno
         })
     except Exception as e:
-        return jsonify({"detail": "Error al obtener los datos"}), 500
+        return jsonify({"detail": f"Error al obtener los datos: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
